@@ -571,8 +571,8 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 _nam = _nam.lower().replace("_", " ")
                 pretty_time = "%s [invalid %s]" % (value, _nam)
             else:
-                pretty_time = dt.strftime("%Y-%m-%d %H:%M:%S")
-                # pretty_time = dt.strftime("%b %d %H:%M:%S %Y GMT")
+                # pretty_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+                pretty_time = dt.strftime("%b %d %H:%M:%S %Y GMT")
                 if dt.microsecond:
                     pretty_time += dt.strftime(".%f")[:4]
                 if dt.tzinfo == utc:
