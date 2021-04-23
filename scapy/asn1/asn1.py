@@ -512,7 +512,7 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
     2. Difference between local and UTC times: YYMMDDHHMM[SS[.fff]]+-HHMM
 
     Note the differences: Year is only two digits, minutes are not optional and
-    there is no miliseconds.
+    there is no milliseconds.
     """
     tag = ASN1_Class_UNIVERSAL.GENERALIZED_TIME
     pretty_time = None
