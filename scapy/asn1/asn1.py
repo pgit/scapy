@@ -21,6 +21,12 @@ from scapy.compat import plain_str, chb, orb
 import scapy.modules.six as six
 from scapy.modules.six.moves import range
 
+class TZ(tzinfo):
+    def __init__(self, delta): self.delta = delta
+    def utcoffset(self, dt): return self.delta
+    def tzname(self, dt): return None
+    def dst(self, dt): return None
+
 class UTC(tzinfo):
     """UTC"""
     def utcoffset(self, dt):
@@ -515,30 +521,34 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 14: "%Y%m%d%H%M%S"
             }
             try:
-                if value[-5] in ("+", "-"):
-                    value, ofs = value[:-5], value[-5:]
-                elif value[-1] == "Z":
-                    value, ofs = value[:-1], value[-1:]
+                self._format = "%y%m%d%H%M%S" if isinstance(self, ASN1_UTC_TIME) else "%Y%m%d%H%M%S"
+
+                if value[-1] == "Z":
+                    str, ofs = value[:-1], value[-1:]
+                elif value[-5] in ("+", "-"):
+                    str, ofs = value[:-5], value[-5:]
                 elif isinstance(self, ASN1_UTC_TIME):
                     raise ValueError()
                 else:
-                    ofs = ""
+                    str, ofs = value, ""
 
-                if isinstance(self, ASN1_UTC_TIME) and len(value) >= 10:
-                    fmt = "%y" + formats[len(value)+2][2:]
-                elif value[-4] == ".":
-                    fmt = formats[len(value)-4] + ".%f"
+                if isinstance(self, ASN1_UTC_TIME) and len(str) >= 10:
+                    fmt = "%y" + formats[len(str)+2][2:]
+                elif str[-4] == ".":
+                    fmt = formats[len(str)-4] + ".%f"
                 else:
-                    fmt = formats[len(value)]
-
-                if len(ofs) == 5:
-                    value += ofs
-                    fmt += "%z"
-
-                dt = datetime.strptime(value, fmt)
+                    fmt = formats[len(str)]
 
                 if ofs == 'Z':
-                    dt = dt.replace(tzinfo=utc)
+                    dt = datetime.strptime(str, fmt).replace(tzinfo=utc)
+                elif ofs:
+                    # dt = datetime.strptime(str + ofs, fmt + "%z")
+                    dt = datetime.strptime(str, fmt)
+                    sgn = -1 if ofs[0] == "-" else 1
+                    ofs = datetime.strptime(ofs[1:], "%H%M")
+                    dt = dt.replace(tzinfo=TZ(timedelta(hours=ofs.hour*sgn, minutes=ofs.minute*sgn)))
+                else:
+                    dt = datetime.strptime(str, fmt)
             except:
                 dt = None
 
@@ -549,11 +559,15 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 pretty_time = "%s [invalid %s]" % (value, _nam)
             else:
                 pretty_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+                # pretty_time = dt.strftime("%b %d %H:%M:%S %Y GMT")
                 if dt.microsecond:
-                    pretty_time += dt.strftime(".%f")[:4]
-                if dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None:
-                    pretty_time += dt.strftime(" %Z")
+                    pretty_time += dt.strftime(".%f")[:4]                
+                if dt.tzinfo == utc:
+                    pretty_time += dt.strftime(" UTC")
+                elif dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None:
+                    pretty_time += dt.strftime(" %z")
 
+            print("value='%s' datetime=%s pretty_time='%s' format='%s" % (value, dt, pretty_time, self._format))
             ASN1_STRING.__setattr__(self, "pretty_time", pretty_time)
             ASN1_STRING.__setattr__(self, "datetime", dt)
             ASN1_STRING.__setattr__(self, name, value)
@@ -569,11 +583,11 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                     str = value.strftime(yfmt + "%m%d%H%M%S")
 
                 if value.tzinfo == utc:
-                    value = str + "Z"
+                    str = str + "Z"
                 else:
-                    value = str + value.strftime("%z") # empty string if val is naive
+                    str = str + value.strftime("%z") # empty string if val is naive
 
-                ASN1_STRING.__setattr__(self, "val", value)
+                ASN1_STRING.__setattr__(self, "val", str)
             except:
                 ASN1_STRING.__setattr__(self, "val", None)
         else:
