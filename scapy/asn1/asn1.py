@@ -570,8 +570,6 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 _nam = self.tag._asn1_obj.__name__[5:]
                 _nam = _nam.lower().replace("_", " ")
                 pretty_time = "%s [invalid %s]" % (value, _nam)
-            elif True:
-                pretty_time = dt.strftime("%b %d %H:%M:%S %Y GMT")
             else:
                 pretty_time = dt.strftime("%Y-%m-%d %H:%M:%S")
                 if dt.microsecond:
