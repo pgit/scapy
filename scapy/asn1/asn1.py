@@ -557,9 +557,8 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                     dt = datetime.strptime(str, fmt)
                     sign = -1 if ofs[0] == "-" else 1
                     ofs = datetime.strptime(ofs[1:], "%H%M")
-                    ofs.minute *= sign
-                    ofs.hour *= sign
-                    delta = timedelta(hours=ofs.hour, minutes=ofs.minute)
+                    delta = timedelta(hours=ofs.hour * sign,
+                                      minutes=ofs.minute * sign)
                     dt = dt.replace(tzinfo=TZ(delta))
                 else:
                     dt = datetime.strptime(str, fmt)
