@@ -6,6 +6,10 @@
 
 # Scapy
 
+This repo:
+[![Scapy unit tests](https://github.com/pgit/scapy/actions/workflows/unittests.yml/badge.svg)](https://github.com/pgit/scapy/actions/workflows/unittests.yml)
+
+Upstream:
 [![Scapy unit tests](https://github.com/secdev/scapy/workflows/Scapy%20unit%20tests/badge.svg?event=push)](https://github.com/secdev/scapy/actions?query=workflow%3A%22Scapy+unit+tests%22+branch%3Amaster+event%3Apush) <!-- ignore_ppi -->
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/os03daotfja0wtp7/branch/master?svg=true)](https://ci.appveyor.com/project/secdev/scapy/branch/master) <!-- ignore_ppi -->
 [![Codecov Status](https://codecov.io/gh/secdev/scapy/branch/master/graph/badge.svg)](https://codecov.io/gh/secdev/scapy) <!-- ignore_ppi -->
