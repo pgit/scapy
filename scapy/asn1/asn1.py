@@ -45,7 +45,7 @@ class UTC(tzinfo):
         return "UTC"
 
     def dst(self, dt):
-        return timedelta(0)
+        return None
 
 
 utc = UTC()
