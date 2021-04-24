@@ -21,35 +21,34 @@ from scapy.compat import plain_str, chb, orb
 import scapy.modules.six as six
 from scapy.modules.six.moves import range
 
+try:
+    from datetime import timezone
+except ImportError:
+    class UTC(tzinfo):
+        """UTC"""
+        def utcoffset(self, dt):
+            return timedelta(0)
 
-class TZ(tzinfo):
-    def __init__(self, delta):
-        self.delta = delta
+        def tzname(self, dt):
+            return "UTC"
 
-    def utcoffset(self, dt):
-        return self.delta
+        def dst(self, dt):
+            return None
 
-    def tzname(self, dt):
-        return None
+    class timezone(tzinfo):
+        def __init__(self, delta):
+            self.delta = delta
 
-    def dst(self, dt):
-        return None
+        def utcoffset(self, dt):
+            return self.delta
 
+        def tzname(self, dt):
+            return None
 
-class UTC(tzinfo):
-    """UTC"""
-    def utcoffset(self, dt):
-        return timedelta(0)
+        def dst(self, dt):
+            return None
 
-    def tzname(self, dt):
-        return "UTC"
-
-    def dst(self, dt):
-        return None
-
-
-utc = UTC()
-
+    timezone.utc = UTC()
 
 class RandASN1Object(RandField):
     def __init__(self, objlist=None):
@@ -516,7 +515,7 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                     fmt = formats[len(str)]
 
                 if ofs == 'Z':
-                    dt = datetime.strptime(str, fmt).replace(tzinfo=utc)
+                    dt = datetime.strptime(str, fmt).replace(tzinfo=timezone.utc)
                 elif ofs:
                     # dt = datetime.strptime(str + ofs, fmt + "%z")
                     dt = datetime.strptime(str, fmt)
@@ -524,7 +523,7 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                     ofs = datetime.strptime(ofs[1:], "%H%M")
                     delta = timedelta(hours=ofs.hour * sign,
                                       minutes=ofs.minute * sign)
-                    dt = dt.replace(tzinfo=TZ(delta))
+                    dt = dt.replace(tzinfo=timezone(delta))
                 else:
                     dt = datetime.strptime(str, fmt)
             except Exception:
@@ -539,7 +538,7 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 pretty_time = dt.strftime("%Y-%m-%d %H:%M:%S")
                 if dt.microsecond:
                     pretty_time += dt.strftime(".%f")[:4]
-                if dt.tzinfo == utc:
+                if dt.tzinfo == timezone.utc:
                     pretty_time += dt.strftime(" UTC")
                 elif dt.tzinfo is not None:
                     if dt.tzinfo.utcoffset(dt) is not None:
@@ -559,7 +558,7 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 else:
                     str = value.strftime(yfmt + "%m%d%H%M%S")
 
-                if value.tzinfo == utc:
+                if value.tzinfo == timezone.utc:
                     str = str + "Z"
                 else:
                     str = str + value.strftime("%z")  # empty if naive
