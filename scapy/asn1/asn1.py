@@ -50,6 +50,7 @@ except ImportError:
 
     timezone.utc = UTC()
 
+
 class RandASN1Object(RandField):
     def __init__(self, objlist=None):
         self.objlist = [
@@ -514,18 +515,15 @@ class ASN1_GENERALIZED_TIME(ASN1_STRING):
                 else:
                     fmt = formats[len(str)]
 
+                dt = datetime.strptime(str, fmt)
                 if ofs == 'Z':
-                    dt = datetime.strptime(str, fmt).replace(tzinfo=timezone.utc)
+                    dt = dt.replace(tzinfo=timezone.utc)
                 elif ofs:
-                    # dt = datetime.strptime(str + ofs, fmt + "%z")
-                    dt = datetime.strptime(str, fmt)
                     sign = -1 if ofs[0] == "-" else 1
                     ofs = datetime.strptime(ofs[1:], "%H%M")
                     delta = timedelta(hours=ofs.hour * sign,
                                       minutes=ofs.minute * sign)
                     dt = dt.replace(tzinfo=timezone(delta))
-                else:
-                    dt = datetime.strptime(str, fmt)
             except Exception:
                 dt = None
 
