@@ -462,41 +462,6 @@ class ASN1_IA5_STRING(ASN1_STRING):
     tag = ASN1_Class_UNIVERSAL.IA5_STRING
 
 
-class ASN1_UTC_TIME_old(ASN1_STRING):
-    tag = ASN1_Class_UNIVERSAL.UTC_TIME
-
-    def __init__(self, val):
-        ASN1_STRING.__init__(self, val)
-
-    def __setattr__(self, name, value):
-        if isinstance(value, bytes):
-            value = plain_str(value)
-        if name == "val":
-            pretty_time = None
-            if isinstance(self, ASN1_GENERALIZED_TIME):
-                _len = 15
-                self._format = "%Y%m%d%H%M%S"
-            else:
-                _len = 13
-                self._format = "%y%m%d%H%M%S"
-            _nam = self.tag._asn1_obj.__name__[4:].lower()
-            if (isinstance(value, str) and
-                    len(value) == _len and value[-1] == "Z"):
-                dt = datetime.strptime(value[:-1], self._format)
-                pretty_time = dt.strftime("%b %d %H:%M:%S %Y GMT")
-            else:
-                pretty_time = "%s [invalid %s]" % (value, _nam)
-            ASN1_STRING.__setattr__(self, "pretty_time", pretty_time)
-            ASN1_STRING.__setattr__(self, name, value)
-        elif name == "pretty_time":
-            print("Invalid operation: pretty_time rewriting is not supported.")
-        else:
-            ASN1_STRING.__setattr__(self, name, value)
-
-    def __repr__(self):
-        return "%s %s" % (self.pretty_time, ASN1_STRING.__repr__(self))
-
-
 class ASN1_GENERALIZED_TIME(ASN1_STRING):
     """
     Improved version of ASN1_GENERALIZED_TIME, properly handling time zones and
